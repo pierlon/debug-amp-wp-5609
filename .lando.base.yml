@@ -5,3 +5,11 @@ config:
   via: nginx
   webroot: web
   database: mariadb
+
+tooling:
+  setup-wp:
+    service: appserver
+    cmd: bash /app/bin/setup.sh
+  install-amp:
+    service: appserver
+    cmd: bash /app/bin/install.sh
