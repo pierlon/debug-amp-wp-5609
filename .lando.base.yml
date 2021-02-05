@@ -1,0 +1,7 @@
+name: amp-composer-debug
+recipe: wordpress
+config:
+  php: '7.4'
+  via: nginx
+  webroot: web
+  database: mariadb
