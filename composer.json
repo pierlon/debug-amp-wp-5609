@@ -38,7 +38,9 @@
     "roots/bedrock-autoloader": "^1.0",
     "roots/wordpress": "5.6",
     "roots/wp-config": "1.0.0",
-    "roots/wp-password-bcrypt": "1.0.0"
+    "roots/wp-password-bcrypt": "1.0.0",
+    "sentry/sentry": "3.0.4",
+    "php-http/curl-client": "^2.2"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "^3.5.8",
