@@ -1,115 +1,63 @@
-<p align="center">
-  <a href="https://roots.io/bedrock/">
-    <img alt="Bedrock" src="https://cdn.roots.io/app/uploads/logo-bedrock.svg" height="100">
-  </a>
-</p>
+# Summary
 
-<p align="center">
-  <a href="LICENSE.md">
-    <img alt="MIT License" src="https://img.shields.io/github/license/roots/bedrock?color=%23525ddc&style=flat-square" />
-  </a>
+This repo serves as an environment to debug issue [ampproject/amp-wp#5609](https://github.com/ampproject/amp-wp/issues/5609).
 
-  <a href="https://packagist.org/packages/roots/bedrock">
-    <img alt="Packagist" src="https://img.shields.io/packagist/v/roots/bedrock.svg?style=flat-square" />
-  </a>
+Composer [v2.0.9](https://github.com/composer/composer/releases/tag/2.0.9) includes a bug fix that should resolve the
+above issue, as all installed packages (whether global or local) should now be reported when several vendor directories
+are present in the same runtime (which is the case here, as the AMP plugin comes bundled with its own Composer autoloader).
+The theory is that since all installed packages should now be reported, the error reported in
+[ampproject/amp-wp#5609](https://github.com/ampproject/amp-wp/issues/5609) should now be resolved and Composer v2 can
+be reused for v2.0 of the AMP plugin.
 
-  <a href="https://circleci.com/gh/roots/bedrock">
-    <img alt="Build Status" src="https://img.shields.io/circleci/build/gh/roots/bedrock?style=flat-square" />
-  </a>
+The bundled plugin [`sentry_version_viewer`](web/app/plugins/sentry_version_viewer.php) is provided to replicate a
+similar error stacktrace that was reported in the issue when the AMP plugin v2.0.6 was active.
 
-  <a href="https://twitter.com/rootswp">
-    <img alt="Follow Roots" src="https://img.shields.io/twitter/follow/rootswp.svg?style=flat-square&color=1da1f2" />
-  </a>
-</p>
+A [modified version](amp.zip) of the AMP plugin v2.0.6 is also provided that has its Composer dependencies installed
+with Composer v2.0.9. This version of the plugin should not cause any errors to be produced.
 
-<p align="center">
-  <strong>A modern WordPress stack</strong>
-  <br />
-  Built with ❤️
-</p>
+To replicate the Composer oriented WordPress stack the reporter had, the [Bedrock](https://github.com/roots/bedrock)
+project is used.
 
-<p align="center">
-  <a href="https://roots.io">Official Website</a> | <a href="https://roots.io/docs/bedrock/master/installation/">Documentation</a> | <a href="CHANGELOG.md">Change Log</a>
-</p>
+# Setup
 
-## Supporting
+> :warning: Ensure you have Composer v2.0.9 or greater installed :warning:
 
-**Bedrock** is an open source project and completely free to use.
+[Lando](https://lando.dev/) is required to be installed before continuing.
 
-However, the amount of effort needed to maintain and develop new features and products within the Roots ecosystem is not sustainable without proper financial backing. If you have the capability, please consider donating using the links below:
+From the command line run the following:
 
-<div align="center">
+- `composer install`
+- `lando start`
+- `lando setup-wp`
 
-[![Donate via Patreon](https://img.shields.io/badge/donate-patreon-orange.svg?style=flat-square&logo=patreon")](https://www.patreon.com/rootsdev)
-[![Donate via PayPal](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&logo=paypal)](https://www.paypal.me/rootsdev)
+# Instructions
 
-</div>
+Once setup, you should be able to access the site at https://amp-composer-debug.lndo.site. The default
+admin username is `admin` and password `password`.
 
-## Overview
+On the "Installed Plugins" page the "Sentry Version Viewer" plugin should be activated and displaying the currently
+installed version of the `sentry/sentry` Composer package:
 
-Bedrock is a modern WordPress stack that helps you get started with the best development tools and project structure.
+![Sentry Version Viewer plugin showing installed version of sentry/sentry Composer package](screenshots/1.png)
 
-Much of the philosophy behind Bedrock is inspired by the [Twelve-Factor App](http://12factor.net/) methodology including the [WordPress specific version](https://roots.io/twelve-factor-wordpress/).
+To install the AMP v2.0.6 plugin from WordPress.org, run:
 
-## Features
+```bash
+lando install-amp original
+```
 
-- Better folder structure
-- Dependency management with [Composer](https://getcomposer.org)
-- Easy WordPress configuration with environment specific files
-- Environment variables with [Dotenv](https://github.com/vlucas/phpdotenv)
-- Autoloader for mu-plugins (use regular plugins as mu-plugins)
-- Enhanced security (separated web root and secure passwords with [wp-password-bcrypt](https://github.com/roots/wp-password-bcrypt))
+Then back on the "Installed Plugins" page, activate the AMP plugin, and the following error should be shown (or view
+the debug log at `web/app/debug.log`):
 
-## Requirements
+![Error stacktrace](screenshots/2.png)
 
-- PHP >= 7.1
-- Composer - [Install](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
+Now to install the modified version of the plugin built with Composer v2.0.9, run:
 
-## Installation
+```bash
+lando install-amp modified
+```
 
-1. Create a new project:
-   ```sh
-   $ composer create-project roots/bedrock
-   ```
-2. Update environment variables in the `.env` file. Wrap values that may contain non-alphanumeric characters with quotes, or they may be incorrectly parsed.
+Once that's completed, revisit the "Installed Plugins" page and activate the plugin. No errors should be reported, and
+the notice showing the installed version of `sentry/sentry` should still be present:
 
-- Database variables
-  - `DB_NAME` - Database name
-  - `DB_USER` - Database user
-  - `DB_PASSWORD` - Database password
-  - `DB_HOST` - Database host
-  - Optionally, you can define `DATABASE_URL` for using a DSN instead of using the variables above (e.g. `mysql://user:password@127.0.0.1:3306/db_name`)
-- `WP_ENV` - Set to environment (`development`, `staging`, `production`)
-- `WP_HOME` - Full URL to WordPress home (https://example.com)
-- `WP_SITEURL` - Full URL to WordPress including subdirectory (https://example.com/wp)
-- `AUTH_KEY`, `SECURE_AUTH_KEY`, `LOGGED_IN_KEY`, `NONCE_KEY`, `AUTH_SALT`, `SECURE_AUTH_SALT`, `LOGGED_IN_SALT`, `NONCE_SALT`
-  - Generate with [wp-cli-dotenv-command](https://github.com/aaemnnosttv/wp-cli-dotenv-command)
-  - Generate with [our WordPress salts generator](https://roots.io/salts.html)
-
-3. Add theme(s) in `web/app/themes/` as you would for a normal WordPress site
-4. Set the document root on your webserver to Bedrock's `web` folder: `/path/to/site/web/`
-5. Access WordPress admin at `https://example.com/wp/wp-admin/`
-
-## Documentation
-
-Bedrock documentation is available at [https://roots.io/docs/bedrock/master/installation/](https://roots.io/docs/bedrock/master/installation/).
-
-## Contributing
-
-Contributions are welcome from everyone. We have [contributing guidelines](https://github.com/roots/guidelines/blob/master/CONTRIBUTING.md) to help you get started.
-
-## Bedrock sponsors
-
-Help support our open-source development efforts by [becoming a patron](https://www.patreon.com/rootsdev).
-
-<a href="https://kinsta.com/?kaid=OFDHAJIXUDIV"><img src="https://cdn.roots.io/app/uploads/kinsta.svg" alt="Kinsta" width="200" height="150"></a> <a href="https://k-m.com/"><img src="https://cdn.roots.io/app/uploads/km-digital.svg" alt="KM Digital" width="200" height="150"></a> <a href="https://carrot.com/"><img src="https://cdn.roots.io/app/uploads/carrot.svg" alt="Carrot" width="200" height="150"></a> <a href="https://www.c21redwood.com/"><img src="https://cdn.roots.io/app/uploads/c21redwood.svg" alt="C21 Redwood Realty" width="200" height="150"></a>
-
-## Community
-
-Keep track of development and community news.
-
-- Participate on the [Roots Discourse](https://discourse.roots.io/)
-- Follow [@rootswp on Twitter](https://twitter.com/rootswp)
-- Read and subscribe to the [Roots Blog](https://roots.io/blog/)
-- Subscribe to the [Roots Newsletter](https://roots.io/subscribe/)
-- Listen to the [Roots Radio podcast](https://roots.io/podcast/)
+![AMP and Sentry viewer plugin living in harmony](screenshots/3.png)
